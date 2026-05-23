@@ -1,84 +1,106 @@
-import { Plane, Briefcase } from "lucide-react";
-import type { FlightOffer, FlightSegment } from "@/api-client";
+import { cn } from "@/lib/utils";
+import { Plane, ChevronDown, ChevronUp, Briefcase, BaggageClaim } from "lucide-react";
+import { useState } from "react";
+import type { FlightOffer } from "@/api-client";
 
 interface FlightCardProps { offer: FlightOffer; }
 
-function formatTime(raw: string): string {
-  if (!raw) return "";
-  const m = raw.match(/\d{2}\.\d{2}\.\d{4}\s+(\d{2}:\d{2})/);
-  if (m) return m[1];
-  try { return new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(raw)); }
-  catch { return raw; }
-}
+const AIRLINE_LOGOS: Record<string,string> = {
+  CA:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Air_China_logo.svg/120px-Air_China_logo.svg.png",
+  MU:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/China_Eastern_Airlines_logo.svg/120px-China_Eastern_Airlines_logo.svg.png",
+  CZ:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/China_Southern_Airlines_logo_%282019%29.svg/120px-China_Southern_Airlines_logo_%282019%29.svg.png",
+};
+function getLogoUrl(airline: string) { const code=airline.slice(0,2).toUpperCase(); return AIRLINE_LOGOS[code]||null; }
 
-function formatDate(raw: string): string {
-  if (!raw) return "";
-  const m = raw.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  if (m) return `${parseInt(m[2], 10)}月${parseInt(m[1], 10)}日`;
-  return raw;
+function fmt(dt: string) {
+  if (!dt) return "—";
+  const m = dt.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}:\d{2})/);
+  if (m) return m[4];
+  const m2 = dt.match(/\d{4}-\d{2}-\d{2}T(\d{2}:\d{2})/);
+  return m2 ? m2[1] : dt.slice(-5);
+}
+function fmtDate(dt: string) {
+  const m = dt.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return dt.slice(0,10);
 }
 
 export function FlightCard({ offer }: FlightCardProps) {
+  const [expanded, setExpanded] = useState(false);
   const first = offer.segments[0];
-  const last = offer.segments[offer.segments.length - 1];
-  const isOvernight = first.departureTime.slice(0, 10) !== last.arrivalTime.slice(0, 10);
+  const last = offer.segments[offer.segments.length-1];
+  const logoUrl = getLogoUrl(offer.airline||first?.airline||"");
 
   return (
-    <div className="group bg-card border rounded-xl p-5 sm:p-6 hover:shadow-md hover:border-primary/20 transition-all duration-200">
-      <div className="flex flex-col lg:flex-row gap-6 lg:items-center justify-between">
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg select-none">
-              {(offer.airline || first.airline).charAt(0)}
-            </div>
-            <div>
-              <p className="font-semibold text-foreground text-sm">{offer.airline || first.airline}</p>
-              <p className="text-xs text-muted-foreground">
-                {offer.segments.length > 1 ? offer.segments.map((s: FlightSegment) => s.flightNumber).join(" / ") : first.flightNumber}
-              </p>
-            </div>
-          </div>
-          <div className="col-span-2 flex items-center gap-4 justify-between sm:justify-center w-full">
-            <div className="text-right flex-1">
-              <p className="text-xl font-bold text-foreground leading-tight">{formatTime(first.departureTime)}</p>
-              <p className="text-sm font-medium text-muted-foreground">{first.departureAirport}</p>
-              <p className="text-xs text-muted-foreground/70">{formatDate(first.departureTime)}</p>
-            </div>
-            <div className="flex flex-col items-center justify-center flex-[1.5] px-2">
-              <p className="text-xs text-muted-foreground mb-1 font-medium">{offer.totalDuration}</p>
-              <div className="w-full flex items-center gap-2">
-                <div className="h-px bg-border flex-1 relative"><div className="absolute w-1.5 h-1.5 rounded-full bg-muted-foreground/50 -left-0.5 -top-[2px]" /></div>
-                <Plane className="w-4 h-4 text-primary shrink-0" />
-                <div className="h-px bg-border flex-1 relative"><div className="absolute w-1.5 h-1.5 rounded-full bg-muted-foreground/50 -right-0.5 -top-[2px]" /></div>
-              </div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-1">
-                {offer.stops === 0 ? "直飞" : `${offer.stops} 经停`}
-              </p>
-            </div>
-            <div className="text-left flex-1">
-              <p className="text-xl font-bold text-foreground leading-tight">
-                {formatTime(last.arrivalTime)}
-                {isOvernight && <span className="text-xs font-normal text-orange-500 ml-1">+1</span>}
-              </p>
-              <p className="text-sm font-medium text-muted-foreground">{last.arrivalAirport}</p>
-              <p className="text-xs text-muted-foreground/70">{formatDate(last.arrivalTime)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="hidden lg:block w-px h-16 bg-border mx-2" />
-        <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between gap-4 lg:w-48 shrink-0">
-          <div className="flex flex-col items-start lg:items-end">
-            <p className="text-2xl font-bold text-foreground">¥{offer.price.toLocaleString("zh-CN", { minimumFractionDigits: 0 })}</p>
-            <p className="text-xs text-muted-foreground">总价 · {offer.currency}</p>
-            {offer.baggage && (
-              <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-                <Briefcase className="w-3.5 h-3.5" /><span>{offer.baggage}</span>
+    <div className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {logoUrl ? (
+              <img src={logoUrl} alt={offer.airline} className="h-7 w-auto object-contain shrink-0" onError={e=>{(e.target as HTMLImageElement).style.display="none";}}/>
+            ) : (
+              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Plane className="h-3.5 w-3.5 text-primary"/>
               </div>
             )}
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">{offer.airline||first?.airline} · {first?.flightNumber}</p>
+              {offer.baggage && <p className="text-xs text-emerald-600 flex items-center gap-1 mt-0.5"><BaggageClaim className="h-3 w-3"/>{offer.baggage}</p>}
+            </div>
           </div>
-          <button className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm active:scale-[0.98]">选择</button>
+          <div className="flex items-center gap-3 sm:gap-8 shrink-0">
+            <div className="text-center">
+              <p className="text-xl sm:text-2xl font-bold tabular-nums">{fmt(first?.departureTime)}</p>
+              <p className="text-xs text-muted-foreground font-mono">{first?.departureAirport}</p>
+            </div>
+            <div className="flex flex-col items-center gap-1 text-muted-foreground">
+              <p className="text-xs whitespace-nowrap">{offer.totalDuration}</p>
+              <div className="flex items-center gap-1">
+                <div className="h-px w-8 sm:w-16 bg-border"/>
+                <Plane className="h-3 w-3 rotate-90"/>
+                <div className="h-px w-8 sm:w-16 bg-border"/>
+              </div>
+              <p className="text-xs">{offer.stops===0?"直飞":`经停 ${offer.stops} 次`}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xl sm:text-2xl font-bold tabular-nums">{fmt(last?.arrivalTime)}</p>
+              <p className="text-xs text-muted-foreground font-mono">{last?.arrivalAirport}</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <div className="text-right">
+              <p className="text-2xl font-bold text-primary">¥{offer.price.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">每人</p>
+            </div>
+            <button onClick={()=>setExpanded(!expanded)} className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors">
+              {expanded?<><ChevronUp className="h-3 w-3"/>收起</>:<><ChevronDown className="h-3 w-3"/>详情</>}
+            </button>
+          </div>
         </div>
       </div>
+      {expanded && (
+        <div className="border-t bg-muted/30 p-4 space-y-3">
+          {offer.segments.map((seg,i)=>(
+            <div key={i} className="flex items-start gap-3">
+              <div className="flex flex-col items-center mt-1">
+                <div className="h-2 w-2 rounded-full bg-primary"/>
+                {i<offer.segments.length-1 && <div className="h-10 w-px bg-border mt-1"/>}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-sm">{fmt(seg.departureTime)} <span className="font-mono text-muted-foreground">{seg.departureAirport}</span></p>
+                  <p className="text-xs text-muted-foreground">{seg.airline} {seg.flightNumber}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">飞行时间 {seg.duration}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="font-semibold text-sm">{fmt(seg.arrivalTime)} <span className="font-mono text-muted-foreground">{seg.arrivalAirport}</span></p>
+                  <p className="text-xs text-muted-foreground">{fmtDate(seg.departureTime)}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

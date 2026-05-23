@@ -1,32 +1,16 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import Home from "@/pages/home";
-import NotFound from "@/pages/not-found";
+import { Toaster } from "@/components/ui/sonner";
+import { HomePage } from "@/pages/home";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+  defaultOptions: { queries: { retry: 1, staleTime: 30000 } }
 });
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base="">
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <HomePage/>
+      <Toaster/>
     </QueryClientProvider>
   );
 }

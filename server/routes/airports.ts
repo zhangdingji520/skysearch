@@ -24,8 +24,14 @@ const AIRPORTS = [
   { iata: "NNG", city: "南宁", name: "吴圩国际机场", country: "中国" },
   { iata: "URC", city: "乌鲁木齐", name: "地窝堡国际机场", country: "中国" },
   { iata: "SYX", city: "三亚", name: "凤凰国际机场", country: "中国" },
-  { iata: "HKG", city: "香港", name: "国际机场", country: "中国香港" },
-  { iata: "MFM", city: "澳门", name: "国际机场", country: "中国澳门" },
+  { iata: "HAK", city: "海口", name: "美兰国际机场", country: "中国" },
+  { iata: "CGQ", city: "长春", name: "龙嘉国际机场", country: "中国" },
+  { iata: "DLC", city: "大连", name: "周水子国际机场", country: "中国" },
+  { iata: "NGB", city: "宁波", name: "栎社国际机场", country: "中国" },
+  { iata: "CSX", city: "长沙", name: "黄花国际机场", country: "中国" },
+  { iata: "TNA", city: "济南", name: "遥墙国际机场", country: "中国" },
+  { iata: "HKG", city: "香港", name: "香港国际机场", country: "中国香港" },
+  { iata: "MFM", city: "澳门", name: "澳门国际机场", country: "中国澳门" },
   { iata: "TPE", city: "台北", name: "桃园国际机场", country: "中国台湾" },
   { iata: "NRT", city: "东京", name: "成田国际机场", country: "日本" },
   { iata: "HND", city: "东京", name: "羽田机场", country: "日本" },
@@ -33,8 +39,8 @@ const AIRPORTS = [
   { iata: "ICN", city: "首尔", name: "仁川国际机场", country: "韩国" },
   { iata: "SIN", city: "新加坡", name: "樟宜机场", country: "新加坡" },
   { iata: "BKK", city: "曼谷", name: "素万那普机场", country: "泰国" },
-  { iata: "KUL", city: "吉隆坡", name: "国际机场", country: "马来西亚" },
-  { iata: "DXB", city: "迪拜", name: "国际机场", country: "阿联酋" },
+  { iata: "KUL", city: "吉隆坡", name: "吉隆坡国际机场", country: "马来西亚" },
+  { iata: "DXB", city: "迪拜", name: "迪拜国际机场", country: "阿联酋" },
   { iata: "LHR", city: "伦敦", name: "希思罗机场", country: "英国" },
   { iata: "CDG", city: "巴黎", name: "戴高乐机场", country: "法国" },
   { iata: "JFK", city: "纽约", name: "肯尼迪机场", country: "美国" },
@@ -42,7 +48,7 @@ const AIRPORTS = [
   { iata: "SYD", city: "悉尼", name: "金斯福德-史密斯机场", country: "澳大利亚" },
 ];
 
-const POPULAR = ["PEK","SHA","CAN","SZX","CTU","CKG","WUH","XIY","KMG","HGH","NKG","XMN","TSN","SHE","HRB","TAO"];
+const POPULAR = ["PEK","SHA","CAN","SZX","CTU","CKG","WUH","XIY","KMG","HGH","NKG","XMN","TSN","HRB","TAO","HAK"];
 
 router.get("/airports/popular", (_req, res) => {
   res.json(POPULAR.map(iata => AIRPORTS.find(a => a.iata === iata)).filter(Boolean));

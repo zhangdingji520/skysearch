@@ -1,60 +1,45 @@
 import { useState } from "react";
-import { Navbar } from "@/components/layout/navbar";
+import { useMutation } from "@tanstack/react-query";
 import { SearchForm, type SearchFormData } from "@/components/search/search-form";
-import { ResultsList } from "@/components/results/results-list";
-import { useSearchFlights } from "@/api-client";
+import { FlightResults } from "@/components/results/flight-results";
+import { Header } from "@/components/layout/header";
+import { searchFlights } from "@/api-client";
+import type { FlightOffer } from "@/api-client";
 
-export default function Home() {
-  const [hasSearched, setHasSearched] = useState(false);
-  const [isRoundTrip, setIsRoundTrip] = useState(false);
+export function HomePage() {
+  const [results, setResults] = useState<FlightOffer[]>([]);
+  const [searchError, setSearchError] = useState<string|undefined>();
 
-  const outboundMutation = useSearchFlights();
-  const returnMutation = useSearchFlights();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data: SearchFormData) => searchFlights(data.outbound),
+    onSuccess: (data) => { setResults(data.offers); setSearchError(undefined); },
+    onError: (err: Error) => { setSearchError(err.message||"查询失败，请重试"); setResults([]); },
+  });
 
   const handleSearch = (data: SearchFormData) => {
-    setHasSearched(true);
-    setIsRoundTrip(data.tripType === "roundtrip");
-    outboundMutation.mutate({ data: data.outbound });
-    if (data.tripType === "roundtrip" && data.returnFlight) {
-      returnMutation.mutate({ data: data.returnFlight });
-    }
+    setResults([]); setSearchError(undefined);
+    mutate(data);
   };
 
-  const isLoading = outboundMutation.isPending || returnMutation.isPending;
-  const error =
-    (outboundMutation.isError ? (outboundMutation.error as any)?.error || "搜索出错" : null) ||
-    (returnMutation.isError ? (returnMutation.error as any)?.error || "搜索出错" : null);
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="flex-1 flex flex-col">
-        <section className="relative w-full h-[400px] md:h-[480px] bg-muted overflow-hidden">
-          <div className="absolute inset-0">
-            <img src="/hero.png" alt="SkySearch" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-background" />
-          </div>
-          <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-center items-center text-center -mt-10">
-            <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-4">开启您的旅程</h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl font-medium">快速搜索全国及国际航班，透明比价，轻松出行</p>
-          </div>
-        </section>
-        <div className="flex-1 relative z-20">
-          <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-          <ResultsList
-            isLoading={isLoading} error={error}
-            outboundResult={outboundMutation.data}
-            returnResult={isRoundTrip ? returnMutation.data : undefined}
-            isRoundTrip={isRoundTrip} hasSearched={hasSearched}
-          />
+    <div className="min-h-screen bg-background">
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-primary via-orange-500 to-amber-500 pt-20 pb-32 sm:pb-40 overflow-hidden">
+        <Header/>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_50%,white_0%,transparent_60%)]"/>
+        <div className="text-center px-4 pt-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white">搜索全球航班</h2>
+          <p className="text-white/80 mt-2 text-base sm:text-lg">实时票价，透明比价，轻松出行</p>
         </div>
-      </main>
-      <footer className="border-t bg-card py-10 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-xl font-bold text-primary mb-1">SkySearch</p>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} SkySearch 版权所有</p>
-        </div>
-      </footer>
+      </div>
+
+      {/* Search form card overlaps hero */}
+      <SearchForm onSearch={handleSearch} isLoading={isPending}/>
+
+      {/* Results */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-8 pb-16">
+        <FlightResults offers={results} isLoading={isPending} error={searchError}/>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,24 @@
+
+name: Auto Unzip File
+on:
+  push:
+    paths:
+      - '**.zip'
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Unzip and Commit
+        run: |
+          # 找到并解压唯一 zip 文件
+          filename=$(basename -s .zip *.zip)
+          unzip "$filename.zip"
+          
+          # 删除原始 zip 文件，配置 git 身份并提交
+          rm "$filename.zip"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Auto unzip $filename.zip" || echo "No changes to commit"
+          git push

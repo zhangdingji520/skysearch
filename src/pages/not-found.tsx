@@ -10,9 +10,7 @@ export default function NotFound() {
             <AlertCircle className="h-8 w-8 text-red-500" />
             <h1 className="text-2xl font-bold text-gray-900">404 页面未找到</h1>
           </div>
-          <p className="mt-4 text-sm text-gray-600">
-            此页面不存在，请返回首页。
-          </p>
+          <p className="mt-4 text-sm text-gray-600">此页面不存在，请返回首页。</p>
         </CardContent>
       </Card>
     </div>

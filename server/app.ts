@@ -1,13 +1,12 @@
-import express, { type Express } from "express";
-import cors from "cors";
-import router from "./routes/index.js";
+import express from "express";
+import flightsRouter from "./routes/flights";
+import airportsRouter from "./routes/airports";
+import healthRouter from "./routes/health";
 
-const app: Express = express();
-
-app.use(cors());
+const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.use("/api", router);
+app.use("/api", healthRouter);
+app.use("/api", airportsRouter);
+app.use("/api", flightsRouter);
 
 export default app;

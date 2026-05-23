@@ -1,12 +1,3 @@
-import { Router, type IRouter } from "express";
-import healthRouter from "./health.js";
-import flightsRouter from "./flights.js";
-import airportsRouter from "./airports.js";
-
-const router: IRouter = Router();
-
-router.use(healthRouter);
-router.use(flightsRouter);
-router.use(airportsRouter);
-
-export default router;
+export { default as flightsRouter } from "./flights";
+export { default as airportsRouter } from "./airports";
+export { default as healthRouter } from "./health";

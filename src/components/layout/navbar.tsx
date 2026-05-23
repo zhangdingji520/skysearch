@@ -14,9 +14,7 @@ export function Navbar() {
           <button className="hover:text-foreground transition-colors cursor-not-allowed opacity-50">我的行程</button>
           <button className="hover:text-foreground transition-colors cursor-not-allowed opacity-50">在线值机</button>
         </nav>
-        <div className="flex items-center gap-4">
-          <button className="text-sm font-medium hover:text-primary transition-colors cursor-not-allowed opacity-50">登录</button>
-        </div>
+        <button className="text-sm font-medium hover:text-primary transition-colors cursor-not-allowed opacity-50">登录</button>
       </div>
     </header>
   );
